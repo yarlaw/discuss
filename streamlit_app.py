@@ -36,7 +36,9 @@ if prompt := st.chat_input("What is up?"):
             messages=st.session_state.messages
         )
 
-        assistant_message = assistant_response.output_text
+        print(assistant_response)
+
+        assistant_message = assistant_response.choices[0].message.content
 
         # Simulate stream of response with milliseconds delay
         for chunk in assistant_message.split():
