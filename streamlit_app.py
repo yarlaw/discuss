@@ -41,7 +41,7 @@ if prompt := st.chat_input("What is up?"):
         assistant_message = assistant_response.choices[0].message.content
 
         # Simulate a stream of response with milliseconds delay
-        for chunk in assistant_message.split(''):
+        for chunk in assistant_message.split():
             full_response += chunk + " "
             message_placeholder.markdown(full_response + "▌")  # Simulate typing
             time.sleep(0.05)  # Small delay for effect
