@@ -5,7 +5,7 @@ import random
 import time
 
 
-client = OpenAI(api_key = st.secrets["API_KEY"], base_url = st.secret["BASE_URL"])
+client = OpenAI(api_key = st.secrets["API_KEY"], base_url = st.secrets["BASE_URL"])
 
 st.title("🗨️ LLM chat bot")
 
