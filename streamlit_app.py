@@ -35,6 +35,8 @@ if "answer" not in st.session_state:
 UPLOAD_FOLDER = "RAG_files"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+documents = []
+
 with st.sidebar:
     st.header("Upload files")
     uploaded_files = st.file_uploader("Choose files", type=["txt", "pdf"], accept_multiple_files=True)
@@ -59,13 +61,6 @@ if uploaded_files:
     st.session_state.faiss_index = create_index(documents)
     st.write("Files indexed successfully!")
     st.session_state.retrieve_files = True
-
-if documents:
-    st.write("Documents loaded successfully!")
-    st.session_state.retrieve_files = True
-else:
-    st.write("No documents found. Please upload files to start.")
-    documents = []
 
 st.title("🗨️ LLM chat bot")
 
