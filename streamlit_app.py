@@ -72,7 +72,7 @@ if question:
     with st.chat_message("user"):
         st.markdown(question)
 
-    answer = answer_question(question, documents, model)
+    answer = answer_question(question, documents, model).content
     print(answer)
 
     if answer is not None:
