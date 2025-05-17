@@ -1,4 +1,4 @@
-PyMuPDF==1.16
+PyMuPDF
 pydantic
 langchain-core
 langchain-huggingface
