@@ -73,6 +73,7 @@ if question:
         st.markdown(question)
 
     answer = answer_question(question, documents, model)
+    print(answer)
 
     if answer is not None:
         with st.chat_message("assistant"):
