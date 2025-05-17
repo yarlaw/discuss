@@ -45,12 +45,6 @@ with st.sidebar:
             os.remove(os.path.join(UPLOAD_FOLDER, file))
         st.write("All files cleared!")
 
-    if st.button("Load PDF"):
-        pdf_file = st.file_uploader("Choose a PDF file", type="pdf")
-        if pdf_file:
-            load_pdf(pdf_file, UPLOAD_FOLDER)
-            st.write("PDF loaded successfully!")
-
 if uploaded_files:
     for uploaded_file in uploaded_files:
         file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
@@ -74,19 +68,21 @@ for message in st.session_state.messages:
 
 question = st.chat_input("What is up?", key = "text")
 
-with st.chat_message("user"):
-    st.markdown(question)
-
 if question:
+    with st.chat_message("user"):
+        st.markdown(question)
+
     answer = answer_question(question, documents, model)
 
-with st.chat_message("assistant") and answer is not None:
-    message_placeholder = st.empty()
-    full_response = ""
+    if answer is not None:
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
 
-    for chunk in answer.split():
-        full_response += chunk + " "
-        time.sleep(0.05)
-        message_placeholder.markdown(full_response + "▌")
-    message_placeholder.markdown(full_response)
-st.session_state.messages.append({"role": "assistant", "content": full_response})
+            for chunk in answer.split():
+                full_response += chunk + " "
+                time.sleep(0.05)
+                message_placeholder.markdown(full_response + "▌")
+            message_placeholder.markdown(full_response)
+
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
