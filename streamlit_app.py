@@ -19,7 +19,12 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-pdf_file = st.file_uploader("Choose a file")
+with st.sidebar:
+    pdf_file = st.file_uploader("Choose a file")
+
+    if pdf_file:
+        doc = pymupdf.open(pdf_file)
+        print(doc[0].get_text())
 
 # Accept user input
 if prompt := st.chat_input("What is up?"):
