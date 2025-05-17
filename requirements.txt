@@ -1,4 +1,4 @@
-PyMuPDF
+fitz
 pydantic
 langchain-core
 langchain-huggingface

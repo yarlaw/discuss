@@ -38,6 +38,7 @@ if st.session_state.clear_files:
     st.session_state.retrieve_files = False
 
 UPLOAD_FOLDER = "RAG_files"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 if uploaded_files:
     for uploaded_file in uploaded_files:
