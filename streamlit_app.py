@@ -1,8 +1,8 @@
 import streamlit as st
 from openai import OpenAI
 import pymupdf
+import fitz
 
-import random
 import time
 
 
@@ -19,12 +19,21 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-with st.sidebar:
-    pdf_file = st.file_uploader("Choose a file", key = "pdf", type="pdf")
+def load_pdf(file_path):
+    doc = fitz.open(file_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    doc.close()
+    return text
 
-    if pdf_file:
-        doc = pymupdf.open(pdf_file)
-        print(doc[0].get_text())
+with st.sidebar:
+    file_path = st.file_uploader("Choose a file", key = "pdf", type="pdf")
+
+    if file_path is not None:
+        
+        file_text = load_pdf(load_pdf)
+        print(file_text)
 
 # Accept user input
 if prompt := st.chat_input("What is up?", key = "text"):
