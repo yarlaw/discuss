@@ -1,5 +1,6 @@
 import streamlit as st
 from openai import OpenAI
+import pymupdf
 
 import random
 import time
@@ -17,6 +18,8 @@ if "messages" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+
+pdf_file = st.file_uploader("Choose a file")
 
 # Accept user input
 if prompt := st.chat_input("What is up?"):
