@@ -1,6 +1,6 @@
 PyPDF2
 PyMuPDF
 pydantic
-langchain-core
-langchain-huggingface
-langchain-openai
+langchain_core
+langchain_huggingface
+langchain_openai
