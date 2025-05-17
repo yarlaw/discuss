@@ -32,11 +32,6 @@ if "context" not in st.session_state:
 if "answer" not in st.session_state:
     st.session_state.answer = ""
 
-if st.session_state.clear_files:
-    uploaded_files = None
-    st.session_state.clear_files = False
-    st.session_state.retrieve_files = False
-
 UPLOAD_FOLDER = "RAG_files"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
