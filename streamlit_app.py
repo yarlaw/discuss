@@ -73,12 +73,14 @@ for message in st.session_state.messages:
 
 
 question = st.chat_input("What is up?", key = "text")
-answer = answer_question(question, documents, model)
 
 with st.chat_message("user"):
     st.markdown(question)
 
-with st.chat_message("assistant") and question is not None:
+if question:
+    answer = answer_question(question, documents, model)
+
+with st.chat_message("assistant") and answer is not None:
     message_placeholder = st.empty()
     full_response = ""
 
