@@ -20,14 +20,14 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 with st.sidebar:
-    pdf_file = st.file_uploader("Choose a file")
+    pdf_file = st.file_uploader("Choose a file", key = "pdf", type="pdf")
 
     if pdf_file:
         doc = pymupdf.open(pdf_file)
         print(doc[0].get_text())
 
 # Accept user input
-if prompt := st.chat_input("What is up?"):
+if prompt := st.chat_input("What is up?", key = "text"):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
     # Display user message in chat message container
