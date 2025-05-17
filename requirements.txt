@@ -1,2 +1,5 @@
-openai
 PyMuPDF==1.16
+pydantic
+langchain-core
+langchain-huggingface
+langchain-openai
