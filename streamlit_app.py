@@ -78,7 +78,7 @@ answer = answer_question(question, documents, model)
 with st.chat_message("user"):
     st.markdown(question)
 
-with st.chat_message("assistant"):
+with st.chat_message("assistant") and question is not None:
     message_placeholder = st.empty()
     full_response = ""
 
