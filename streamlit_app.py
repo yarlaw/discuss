@@ -35,6 +35,20 @@ if "answer" not in st.session_state:
 UPLOAD_FOLDER = "RAG_files"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+with st.sidebar:
+    st.header("Upload files")
+    uploaded_files = st.file_uploader("Choose files", type=["txt", "pdf"], accept_multiple_files=True)
+    if st.button("Clear all files"):
+        for file in os.listdir(UPLOAD_FOLDER):
+            os.remove(os.path.join(UPLOAD_FOLDER, file))
+        st.write("All files cleared!")
+
+    if st.button("Load PDF"):
+        pdf_file = st.file_uploader("Choose a PDF file", type="pdf")
+        if pdf_file:
+            load_pdf(pdf_file, UPLOAD_FOLDER)
+            st.write("PDF loaded successfully!")
+
 if uploaded_files:
     for uploaded_file in uploaded_files:
         file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
@@ -54,13 +68,7 @@ if "messages" not in st.session_state:
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-with st.sidebar:
-    file_path = st.file_uploader("Choose a file", key = "pdf", type="pdf")
-
-    if file_path:
-        load_pdf(file_path)
+        st.markdown(message["content"])    
 
 
 question = st.chat_input("What is up?", key = "text")
