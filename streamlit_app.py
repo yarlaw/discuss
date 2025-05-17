@@ -60,6 +60,12 @@ if uploaded_files:
     st.write("Files indexed successfully!")
     st.session_state.retrieve_files = True
 
+if documents:
+    st.write("Documents loaded successfully!")
+    st.session_state.retrieve_files = True
+else:
+    st.write("No documents found. Please upload files to start.")
+    documents = []
 
 st.title("🗨️ LLM chat bot")
 
