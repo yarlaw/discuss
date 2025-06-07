@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  streamlit-app:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - API_KEY=${API_KEY}
+      - BASE_URL=${BASE_URL}
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+      - ./RAG_files:/app/RAG_files
+    command: >
+      streamlit run streamlit_app.py
+      --server.port=8501
+      --server.address=0.0.0.0
+      --server.runOnSave=true
+    restart: unless-stopped

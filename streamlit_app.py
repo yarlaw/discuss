@@ -7,9 +7,11 @@ import streamlit as st
 from chat_openrouter import ChatOpenRouter
 from docloader import load_documents_from_folder, load_pdf
 from embedder import create_index
+
+from ui.create_entity import create_entity
  
 template = """
-Give concreate answers without too many wor1ds.
+Give concrete answers without too many wor1ds.
 If you don't know the answer just say that.
 Question: {question}
 Context: {context}
@@ -37,26 +39,34 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 documents = []
 
+if "entities" not in st.session_state:
+    st.session_state.entities = [{"title": "Entity 1"}]
+
 with st.sidebar:
-    st.header("Upload files")
-    uploaded_files = st.file_uploader("Choose files", type=["txt", "pdf"], accept_multiple_files=True)
-    if st.button("Clear all files"):
-        for file in os.listdir(UPLOAD_FOLDER):
-            os.remove(os.path.join(UPLOAD_FOLDER, file))
-        st.write("All files cleared!")
+    st.header("Configure characters")
+    # Dynamically render expanders for each entity
+    for idx, entity in enumerate(st.session_state.entities):
+        st.button(entity["title"], key=f"entity_button_{idx}")
 
-if uploaded_files:
-    for uploaded_file in uploaded_files:
-        file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
-        with open(file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-    st.write("Files uploaded successfully!")
-    documents = load_documents_from_folder(UPLOAD_FOLDER)
-    st.session_state.faiss_index = create_index(documents)
-    st.write("Files indexed successfully!")
-    st.session_state.retrieve_files = True
+            
 
-st.title("🗨️ LLM chat bot")
+    # Button to add a new entity at the bottom
+    if st.button("Add new entity"):
+        create_entity("Entity " + str(idx + 1))
+    
+
+# if uploaded_files:
+#     for uploaded_file in uploaded_files:
+#         file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
+#         with open(file_path, "wb") as f:
+#             f.write(uploaded_file.getbuffer())
+#     st.write("Files uploaded successfully!")
+#     documents = load_documents_from_folder(UPLOAD_FOLDER)
+#     st.session_state.faiss_index = create_index(documents)
+#     st.write("Files indexed successfully!")
+#     st.session_state.retrieve_files = True
+
+st.title("🗨️ LLM discussions bot")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "Let's start chatting! 👇"}]
@@ -77,7 +87,7 @@ if question:
 
     if answer is not None:
         with st.chat_message("assistant"):
-            message_placeholder = st.empty()
+            message_placeholder = st.markdown("")
             full_response = ""
 
             for chunk in answer.split():
