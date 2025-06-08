@@ -6,8 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 import streamlit as st
 
 from chat_openrouter import ChatOpenRouter
-from docloader import load_documents_from_folder, load_pdf
-from embedder import create_index
+from utils.embedder import create_index
 
 from entities.create_entity import create_entity
 from entities.edit_entity import edit_entity
@@ -97,7 +96,7 @@ with st.sidebar:
     st.write("")
     # Button to add a new entity at the bottom
     if st.button("Add new entity", type="primary", use_container_width=True):
-        create_entity("Entity " + str(idx + 1))
+        create_entity("Entity " + str(len(st.session_state.entities) + 1))
     
 
 # if uploaded_files:

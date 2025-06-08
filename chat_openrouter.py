@@ -10,7 +10,6 @@ class ChatOpenRouter(ChatOpenAI):
         alias="api_key", default=None,
     )
     @property
-    @property
     def lc_secrets(self) -> dict[str, str]:
         # Try to get from environment variables first, then fall back to streamlit secrets
         api_key = os.getenv("API_KEY")
