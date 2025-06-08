@@ -1,5 +1,6 @@
 import os
 import time
+import uuid
 
 from langchain_core.prompts import ChatPromptTemplate
 import streamlit as st
@@ -8,7 +9,9 @@ from chat_openrouter import ChatOpenRouter
 from docloader import load_documents_from_folder, load_pdf
 from embedder import create_index
 
-from ui.create_entity import create_entity
+from entities.create_entity import create_entity
+from entities.edit_entity import edit_entity
+from entities.remove_entity import remove_entity
  
 template = """
 Give concrete answers without too many wor1ds.
@@ -40,18 +43,60 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 documents = []
 
 if "entities" not in st.session_state:
-    st.session_state.entities = [{"title": "Entity 1"}]
+    st.session_state.entities = [{"uuid": uuid.uuid1, "title": "Entity 1"}]
 
 with st.sidebar:
-    st.header("Configure characters")
+    st.title("Configure entities")
+
+    st.header("Global settings")
+
+    st.slider(
+        "Discuss circles",
+        min_value=1,
+        max_value=5,
+        value=3,
+        key="discuss_circles",
+        help="Number of discuss circles"
+    )
+
+    st.header("Entities")
     # Dynamically render expanders for each entity
     for idx, entity in enumerate(st.session_state.entities):
-        st.button(entity["title"], key=f"entity_button_{idx}")
+        # st.button(entity["title"], key=f"entity_button_{idx}")
 
+        with st.expander(f"**{entity['title']}**", expanded=False):
+            
+            # TODO: Display the entity's model
+            st.caption("Used model is: mistral")
+
+            # TODO: Display the entity's type of info
+            st.text("Type of info: PDF files")
+
+            col1, col2 = st.columns(2)
+                
+            with col1:
+                if st.button(
+                    "Edit", 
+                        key=f"edit_{idx}",
+                        use_container_width=True,
+                        type="primary",
+                        help=f"Edit {entity['title']}"
+                ):
+                    edit_entity(entity["uuid"],entity["title"])
+                
+            with col2:
+                if st.button(
+                    "Remove", 
+                        key=f"remove_{idx}",
+                        use_container_width=True,
+                        help=f"Remove {entity['title']}"
+                ):
+                    remove_entity(entity["uuid"])
             
 
+    st.write("")
     # Button to add a new entity at the bottom
-    if st.button("Add new entity"):
+    if st.button("Add new entity", type="primary", use_container_width=True):
         create_entity("Entity " + str(idx + 1))
     
 
@@ -74,7 +119,6 @@ if "messages" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])    
-
 
 question = st.chat_input("What is up?", key = "text")
 

@@ -1,0 +1,20 @@
+[theme]
+# Primary colors - using Claude's signature orange
+primaryColor = "#BB5A38"  # Claude's main orange color for interactive elements
+
+# Background colors - clean, minimal like Claude's interface
+backgroundColor = "#F4F3ED"  # Pure white background
+secondaryBackgroundColor = "#E8E7DD"  # Very light gray for containers/cards
+
+# Text color - dark gray for excellent readability
+textColor = "#3D3A2A"  # Dark gray, not pure black for better readability
+
+theme.baseRadius = "0.2rem"
+showWidgetBorder=false
+borderColor="#BB5A38"
+
+# Font - clean, modern sans-serif
+font = "sans serif"  # Uses system sans-serif fonts (similar to Claude's Inter font)
+
+# Optional: Set base theme (light/dark)
+base = "light"

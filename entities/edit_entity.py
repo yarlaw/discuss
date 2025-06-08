@@ -4,9 +4,9 @@ import os
 
 UPLOAD_FOLDER = "RAG_files"
 
-@st.dialog("Create New Entity")
-def create_entity(new_title):
-    title = st.text_input("Title", value=new_title, key="create_entity_title")
+@st.dialog("Edit Entity")
+def edit_entity(id,old_title):
+    title = st.text_input("Title", value=old_title, key="create_entity_title")
     
     tab1, tab2 = st.tabs(["PDF files", "Wikipedia link"])
 
@@ -17,5 +17,9 @@ def create_entity(new_title):
         link = st.text_input("Insert link", value="", key="create_entity_link")
 
     if st.button("Submit", type="primary"):
-        st.session_state.entities.append({"title": title})
+        for item in st.session_state.entities:
+            if item["uuid"] == id:
+                item["title"] = title
+                break 
+        
         st.rerun()
