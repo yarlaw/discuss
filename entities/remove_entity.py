@@ -10,20 +10,21 @@ def remove_entity(id):
 
     # Find the entity and list its PDFs
     entity = next((x for x in st.session_state.entities if x["uuid"] == id), None)
-    if entity and entity.get("documents"):
+    if entity and entity.get("sources"):
         st.markdown("**PDF files to be deleted:**")
-        for doc in entity["documents"]:
-            if doc["filename"].lower().endswith(".pdf"):
-                st.write(f"- {doc['filename']}")
+        for src in entity["sources"]:
+            if src["type"] == "pdf":
+                st.write(f"- {src.get('filename', os.path.basename(src['filepath']))}")
 
     if st.button("Submit", type="primary"):
         # Remove files from disk
-        if entity and entity.get("documents"):
-            for doc in entity["documents"]:
-                try:
-                    os.remove(doc["path"])
-                except Exception:
-                    pass
+        if entity and entity.get("sources"):
+            for src in entity["sources"]:
+                if src["type"] == "pdf":
+                    try:
+                        os.remove(src["filepath"])
+                    except Exception:
+                        pass
         # Remove the entity's folder if empty
         entity_folder = os.path.join(UPLOAD_FOLDER, str(id))
         try:
