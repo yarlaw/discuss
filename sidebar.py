@@ -5,6 +5,7 @@ from entities.edit_entity import edit_entity
 
 from utils.material_loader import load_all_entity_materials
 from utils.constants import DEFAULT_CYCLES
+from utils.models import get_model_family
 
 @st.fragment
 def render_sidebar():
@@ -23,7 +24,10 @@ def render_sidebar():
     st.header("Entities")
     for idx, entity in enumerate(st.session_state.entities):
         with st.expander(f"**{entity['title']}**", expanded=False):
-            st.caption("Used model is: mistral")
+            # Show model information
+            model_name = entity.get("model", "mistral-7b")
+            model_family = get_model_family(model_name)
+            st.caption(f"Model: {model_name} ({model_family})")
                 
             pdf_count = len([src for src in entity.get("sources", []) if src["type"] == "pdf"])
             wiki_count = len([src for src in entity.get("sources", []) if src["type"] == "wiki_link"])

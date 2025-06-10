@@ -1,12 +1,31 @@
 import streamlit as st
-
 import os
 
-UPLOAD_FOLDER = "RAG_files"
+from utils.models import list_available_models, get_model_family
+from utils.constants import DEFAULT_MODEL_NAME, UPLOAD_FOLDER
 
 @st.dialog("Edit Entity")
 def edit_entity(id, old_title):
-    title = st.text_input("Title", value=old_title, key="create_entity_title")
+    title = st.text_input("Title", value=old_title, key="edit_entity_title")
+    
+    current_entity = next((item for item in st.session_state.entities if item["uuid"] == id), None)
+    
+    available_models = list_available_models()
+    model_labels = [f"{model} ({get_model_family(model)})" for model in available_models]
+    
+    current_model = current_entity.get("model", DEFAULT_MODEL_NAME) if current_entity else DEFAULT_MODEL_NAME
+    model_index = available_models.index(current_model) if current_model in available_models else 0
+    
+    selected_model_label = st.selectbox(
+        "LLM Model",
+        options=model_labels,
+        index=model_index,
+        key=f"edit_entity_model_{id}",
+        help="Select the LLM model for this entity"
+    )
+    
+    selected_model = selected_model_label.split(" (")[0]
+    
     tab1, tab2 = st.tabs(["PDF files", "Wikipedia link"])
 
     def handle_file_uploads(entity_folder):
@@ -21,7 +40,7 @@ def edit_entity(id, old_title):
                     "type": "pdf",
                     "filepath": file_path,
                     "filename": uploaded_file.name,
-                    "_uploaded_file": uploaded_file,  # keep reference for writing after submit
+                    "_uploaded_file": uploaded_file,
                     "was_loaded": False
                 })
         return sources
@@ -53,7 +72,7 @@ def edit_entity(id, old_title):
         for item in st.session_state.entities:
             if item["uuid"] == id:
                 item["title"] = title
-                # Remove selected sources from entity and disk if PDF
+                item["model"] = selected_model
                 if sources_to_remove:
                     for src in sources_to_remove:
                         if src in item["sources"]:
@@ -63,13 +82,11 @@ def edit_entity(id, old_title):
                                     os.remove(src["filepath"])
                                 except Exception:
                                     pass
-                # Add new sources to the entity's sources list, and write files now
                 new_pdf_added = False
                 if new_sources:
                     if "sources" not in item:
                         item["sources"] = []
                     for src in new_sources:
-                        # Write the file only now
                         if "_uploaded_file" in src:
                             os.makedirs(os.path.dirname(src["filepath"]), exist_ok=True)
                             with open(src["filepath"], "wb") as f:
@@ -79,13 +96,11 @@ def edit_entity(id, old_title):
                             item["sources"].append(src)
                             if src["type"] == "pdf":
                                 new_pdf_added = True
-                # Add wiki link if provided
                 if link:
                     if "sources" not in item:
                         item["sources"] = []
                     if not any(s["type"] == "wiki_link" and s["filepath"] == link for s in item["sources"]):
                         item["sources"].append({"type": "wiki_link", "filepath": link})
-                # If a new PDF was added, mark materials as not loaded
                 if new_pdf_added:
                     st.session_state.materials_loaded = False
                 break

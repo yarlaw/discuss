@@ -1,6 +1,6 @@
 UPLOAD_FOLDER = "RAG_files"
 DEFAULT_CYCLES = 3
-DEFAULT_MODEL = "meta-llama/llama-3.3-8b-instruct:free"
+DEFAULT_MODEL_NAME = "mistral-7b"
 WELCOME_MESSAGE = """Welcome to the LLM Discussions Bot! 👋
 
 Enter a topic below, and the configured entities will discuss it in multiple cycles. 

@@ -1,6 +1,4 @@
-import os
 import time
-import uuid
 
 import streamlit as st
 from langchain_core.prompts import ChatPromptTemplate
@@ -9,26 +7,19 @@ from chat_openrouter import ChatOpenRouter
 
 from utils.setup import initialize_session_state
 from sidebar import render_sidebar
-from utils.material_loader import load_all_entity_materials
-from utils.constants import DEFAULT_MODEL
+from utils.constants import DEFAULT_MODEL_NAME
+from utils.models import get_model_id
 
-model = ChatOpenRouter(model_name=DEFAULT_MODEL)
+def get_entity_model(entity):
+    model_name = entity.get("model", DEFAULT_MODEL_NAME)
+    model_id = get_model_id(model_name)
+    return ChatOpenRouter(model_name=model_id)
 
-def get_entity_response(entity, topic, model, entity_materials, previous_responses=None, cycle_num=1, all_previous_cycles=None):
-    """
-    Generate a response from an entity based on the topic and previous entity responses.
-    
-    Args:
-        entity: The entity dictionary
-        topic: The discussion topic
-        model: The LLM model to use
-        entity_materials: Dictionary of entity materials (for future RAG use)
-        previous_responses: List of previous entity responses in this discussion cycle
-        cycle_num: Current discussion cycle number
-        all_previous_cycles: List of all previous discussion cycles
-    """
+def get_entity_response(entity, topic, entity_materials, previous_responses=None, cycle_num=1, all_previous_cycles=None):
     entity_uuid = entity["uuid"]
     entity_name = entity["title"]
+    
+    entity_model = get_entity_model(entity)
     
     current_cycle_context = ""
     if previous_responses and len(previous_responses) > 0:
@@ -69,7 +60,7 @@ IMPORTANT INSTRUCTIONS:
 Your response as {entity_name} for cycle {cycle_num}:"""
     
     prompt = ChatPromptTemplate.from_template(entity_template)
-    chain = prompt | model
+    chain = prompt | entity_model
     
     try:
         response = chain.invoke({
@@ -114,7 +105,6 @@ def conduct_discussion(topic, num_cycles):
                 response = get_entity_response(
                     entity, 
                     topic, 
-                    model, 
                     st.session_state.get("entity_materials", {}),
                     previous_responses=previous_responses,
                     cycle_num=cycle,

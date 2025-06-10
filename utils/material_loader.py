@@ -6,30 +6,6 @@ import utils.docloader as docloader
 import utils.embedder as embedder
 from utils.constants import UPLOAD_FOLDER
 
-def load_pdf_source(src, entity_processed):
-    file_path = src["filepath"]
-    filename = src["filename"]
-    mtime = os.path.getmtime(file_path) if os.path.exists(file_path) else None
-    
-    was_loaded = False
-    
-    if filename in entity_processed and entity_processed[filename] == mtime:
-        return None, True, entity_processed[filename]
-    
-    try:
-        text = docloader.load_pdf(file_path)
-        doc_info = {"filename": filename, "text": text}
-        
-        updated_processed_entry = mtime
-        was_loaded = True
-        return doc_info, was_loaded, updated_processed_entry
-    except Exception as e:
-        st.error(f"Error loading PDF {filename}: {str(e)}", icon="🚨")
-        return None, False, None
-
-def load_wiki_source(src, entity_processed):
-    return None, True, None
-
 def load_entity_materials(entity, entity_materials, processed_files):
     entity_uuid = entity["uuid"]
     docs_to_index = []
@@ -61,15 +37,10 @@ def load_entity_materials(entity, entity_materials, processed_files):
     return entity_materials, processed_files
 
 def load_all_entity_materials():
-    """
-    Loads and indexes all sources for each entity.
-    Sets a flag to indicate successful loading and forces a page rerun.
-    """
     entity_materials = st.session_state.setdefault("entity_materials", {})
     processed_files = st.session_state.setdefault("_processed_files", {})
     total_entities = len(st.session_state.entities)
     
-    # Create a progress bar with st.progress
     progress_bar = st.progress(0)
     status_text = st.empty()
     
@@ -81,21 +52,41 @@ def load_all_entity_materials():
                 entity, entity_materials, processed_files
             )
             
-            # Update progress bar
             progress = (idx + 1) / total_entities
             progress_bar.progress(progress)
             st.session_state.loading_progress = progress
             
-        # Mark materials as loaded before rerunning
         st.session_state.materials_loaded = True
         st.session_state._entities_changed = False
         
-        # Remove progress indicators
         status_text.empty()
         
-        # Force a rerun to update the UI immediately
         st.rerun()
     except Exception as e:
         st.error(f"Error loading materials: {str(e)}", icon="🚨")
-        # Ensure we don't get stuck in a bad state
         st.session_state.materials_loaded = False
+
+
+def load_pdf_source(src, entity_processed):
+    file_path = src["filepath"]
+    filename = src["filename"]
+    mtime = os.path.getmtime(file_path) if os.path.exists(file_path) else None
+    
+    was_loaded = False
+    
+    if filename in entity_processed and entity_processed[filename] == mtime:
+        return None, True, entity_processed[filename]
+    
+    try:
+        text = docloader.load_pdf(file_path)
+        doc_info = {"filename": filename, "text": text}
+        
+        updated_processed_entry = mtime
+        was_loaded = True
+        return doc_info, was_loaded, updated_processed_entry
+    except Exception as e:
+        st.error(f"Error loading PDF {filename}: {str(e)}", icon="🚨")
+        return None, False, None
+
+def load_wiki_source(src, entity_processed):
+    return None, True, None
