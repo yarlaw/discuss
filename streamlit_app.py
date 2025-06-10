@@ -35,6 +35,84 @@ def answer_question(question, documents, model):
     chain = promt | model
     return chain.invoke({"question": question, "context": context})
 
+def get_entity_response(entity, topic, model, entity_materials, previous_responses=None):
+    """
+    Generate a response from an entity based on the topic and previous entity responses.
+    For now, this version responds without using RAG/entity-specific context.
+    
+    Args:
+        entity: The entity dictionary
+        topic: The discussion topic
+        model: The LLM model to use
+        entity_materials: Dictionary of entity materials (for future RAG use)
+        previous_responses: List of previous entity responses in this discussion cycle
+    """
+    entity_uuid = entity["uuid"] # Preserved for potential future use
+    entity_name = entity["title"]
+    
+    # Format previous responses if available
+    previous_context = ""
+    if previous_responses and len(previous_responses) > 0:
+        previous_context = "Previous responses in this discussion:\n"
+        for prev in previous_responses:
+            previous_context += f"- {prev['entity']}: {prev['content']}\n"
+    
+    entity_template = """You are {entity_name}.
+You are participating in a discussion about the topic: "{topic}".
+
+{previous_context}
+
+Please provide your perspective on this topic based on your general understanding.
+Be controversial and take a strong stance on the topic. Don't be afraid to disagree with previous speakers.
+If others have spoken before you, consider their viewpoints but feel free to challenge them.
+Keep your response concise, focused, and ideally 2-3 sentences with a provocative angle.
+
+Your response as {entity_name}:"""
+    
+    prompt = ChatPromptTemplate.from_template(entity_template)
+    chain = prompt | model
+    
+    try:
+        # Include previous_context in the template variables
+        response = chain.invoke({
+            "entity_name": entity_name,
+            "topic": topic,
+            "previous_context": previous_context
+        })
+        return response.content
+    except Exception as e:
+        st.error(f"Error in get_entity_response for {entity_name}: {e}", icon="🚨")
+        return f"I'm sorry, as {entity_name}, I'm having trouble formulating a response right now."
+
+def start_discussion_cycle(topic, entities, model, entity_materials):
+    """
+    Start one cycle of discussion where each entity speaks once in turn.
+    Each entity will see responses from entities that spoke before them.
+    Returns a list of discussion messages.
+    """
+    discussion_messages = []
+    
+    for entity in entities:
+        # Allow all entities to participate in discussion, even without sources
+        response = get_entity_response(
+            entity, 
+            topic, 
+            model, 
+            entity_materials, 
+            previous_responses=discussion_messages
+        )
+            
+            # Add this entity's response to the discussion
+        # Add this entity's response to the discussion
+        discussion_messages.append({
+            "entity": entity["title"],
+            "entity_uuid": entity["uuid"],
+            "content": response,
+            "role": "assistant"
+        })
+    
+    return discussion_messages
+
 def load_all_entity_materials():
     """
     Loads and indexes all PDF sources for each entity, marking each source with 'was_loaded'.
@@ -87,6 +165,14 @@ if "materials_loaded" not in st.session_state:
     st.session_state.materials_loaded = False
 if "loading_progress" not in st.session_state:
     st.session_state.loading_progress = 0.0
+if "discussion_messages" not in st.session_state:
+    st.session_state.discussion_messages = []
+if "discussion_active" not in st.session_state:
+    st.session_state.discussion_active = False
+if "current_topic" not in st.session_state:
+    st.session_state.current_topic = ""
+if "discussion_cycle" not in st.session_state:
+    st.session_state.discussion_cycle = 0
 
 
 
@@ -111,7 +197,7 @@ with st.sidebar:
                 st.badge(f"PDFs: {pdf_count}", color="violet", icon="📄")
             if wiki_count > 0:
                 st.badge(f"Wiki: {wiki_count}", color="blue", icon="🌐")
-            if len([src for src in entity]) == 0:
+            if not entity.get("sources") or len(entity.get("sources", [])) == 0:
                 st.markdown(":orange-badge[⚠️No sources attached]")
             col1, col2 = st.columns(2)
             with col1:
@@ -162,24 +248,67 @@ if not st.session_state.materials_loaded:
     st.chat_input("Put the theme to discussion", key="text", disabled=True)
 else:
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "Let's start chatting! 👇"}]
+        st.session_state.messages = [{"role": "assistant", "content": "Welcome to the LLM Discussions Bot! 👋\n\nEnter a topic below, and the configured entities will discuss it in turn. Each entity will see and respond to what others have said before them. Entities are encouraged to be controversial and take strong stances on topics, so expect lively debates!"}]
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
     question = st.chat_input("Put the theme to discussion", key="text")
     if question:
+        st.session_state.messages.append({"role": "user", "content": question})
         with st.chat_message("user"):
             st.markdown(question)
-        # You may want to update this to use entity_materials for retrieval
-        answer = answer_question(question, [], model).content
-        print(answer)
-        if answer is not None:
-            with st.chat_message("assistant"):
-                message_placeholder = st.markdown("")
-                full_response = ""
-                for chunk in answer.split():
-                    full_response += chunk + " "
-                    time.sleep(0.05)
-                    message_placeholder.markdown(full_response + "▌")
-                message_placeholder.markdown(full_response)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+        # Start discussion cycle
+        st.session_state.current_topic = question
+        st.session_state.discussion_active = True
+        st.session_state.discussion_cycle = 1 # Initialize cycle count
+        
+        # Create a container for entity responses
+        response_container = st.container()
+        
+        # Create a placeholder for the status
+        status_placeholder = st.empty()
+        
+        # Initialize entity_responses list for collecting all responses
+        entity_responses = []
+        
+        # Process entities one by one with live updates
+        with status_placeholder.status("Entities are discussing the topic...", expanded=True) as status:
+            for idx, entity in enumerate(st.session_state.entities):
+                # Update status to show which entity is currently thinking
+                status.update(label=f"Entity {idx+1}/{len(st.session_state.entities)}: {entity['title']} is formulating a response...")
+                
+                # Get this entity's response (including previous responses)
+                previous_responses = [{"entity": resp["entity"], "content": resp["content"]} for resp in entity_responses]
+                response = get_entity_response(
+                    entity, 
+                    question, 
+                    model, 
+                    st.session_state.get("entity_materials", {}),
+                    previous_responses=previous_responses
+                )
+                
+                # Add to our collected responses
+                current_response = {
+                    "entity": entity["title"],
+                    "entity_uuid": entity["uuid"],
+                    "content": response,
+                    "role": "assistant"
+                }
+                entity_responses.append(current_response)
+                
+                # Display this entity's response immediately
+                with response_container.chat_message("assistant", avatar=f"🤖"):
+                    st.markdown(f"**{current_response['entity']}:** {current_response['content']}")
+                
+                # Add to session state messages
+                st.session_state.messages.append({"role": "assistant", "content": f"**{current_response['entity']}:** {current_response['content']}"})
+                
+                # Add a small delay to make the discussion feel more natural
+                if idx < len(st.session_state.entities) - 1:  # Don't delay after the last entity
+                    time.sleep(0.5)
+            
+            status.update(label="Discussion complete!", state="complete")
+        
+        # Mark discussion as complete for this cycle
+        st.session_state.discussion_active = False
