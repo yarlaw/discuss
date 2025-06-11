@@ -66,7 +66,14 @@ def edit_entity(id, old_title):
         sources_to_remove = show_and_select_sources_to_remove(current_entity)
 
     with tab2:
-        link = st.text_input("Insert link", value="", key="edit_entity_link")
+        current_wiki_link = ""
+        if current_entity and current_entity.get("sources"):
+            for src in current_entity["sources"]:
+                if src["type"] == "wiki_link":
+                    current_wiki_link = src["filepath"]
+                    break
+        
+        link = st.text_input("Insert link", value=current_wiki_link, key="edit_entity_link")
 
     if st.button("Submit", type="primary"):
         for item in st.session_state.entities:
@@ -99,9 +106,25 @@ def edit_entity(id, old_title):
                 if link:
                     if "sources" not in item:
                         item["sources"] = []
-                    if not any(s["type"] == "wiki_link" and s["filepath"] == link for s in item["sources"]):
-                        item["sources"].append({"type": "wiki_link", "filepath": link})
-                if new_pdf_added:
+                    
+                    existing_wiki = next((s for s in item["sources"] if s["type"] == "wiki_link"), None)
+                    
+                    if existing_wiki:
+                        if existing_wiki["filepath"] != link:
+                            existing_wiki["filepath"] = link
+                            existing_wiki["was_loaded"] = False
+                            wiki_link_changed = True
+                    else:
+                        item["sources"].append({
+                            "type": "wiki_link", 
+                            "filepath": link,
+                            "was_loaded": False
+                        })
+                        wiki_link_changed = True
+                
+                if new_pdf_added or wiki_link_changed:
                     st.session_state.materials_loaded = False
+                    st.session_state._entities_changed = True
+                
                 break
         st.rerun()

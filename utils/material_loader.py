@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 
 import streamlit as st
 
@@ -88,5 +89,32 @@ def load_pdf_source(src, entity_processed):
         st.error(f"Error loading PDF {filename}: {str(e)}", icon="🚨")
         return None, False, None
 
+
 def load_wiki_source(src, entity_processed):
-    return None, True, None
+    url = src["filepath"]
+    
+    try:
+        if url in entity_processed:
+           return None, True, entity_processed[url]
+            
+        text = docloader.load_wiki_content(url)
+        
+        if text:
+            parsed_url = urlparse(url)
+            path_parts = parsed_url.path.strip('/').split('/')
+            page_title = path_parts[-1] if path_parts else "Wiki_Page"
+            
+            doc_info = {
+                "filename": f"Wiki_{page_title}",
+                "text": text
+            }
+            
+            updated_processed_entry = url
+            was_loaded = True
+            return doc_info, was_loaded, updated_processed_entry
+        else:
+            return None, False, None
+            
+    except Exception as e:
+        st.error(f"Error loading wiki content from {url}: {str(e)}", icon="🚨")
+        return None, False, None

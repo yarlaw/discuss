@@ -48,11 +48,19 @@ def create_entity(new_title):
                 with open(file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
         if link:
-            sources.append({"type": "wiki_link", "link": link})
+            sources.append({
+                "type": "wiki_link", 
+                "filepath": link,
+                "was_loaded": False
+            })
         st.session_state.entities.append({
             "uuid": entity_uuid,
             "title": title,
             "model": selected_model, 
             "sources": sources
         })
+        
+        st.session_state.materials_loaded = False
+        st.session_state._entities_changed = True
+
         st.rerun()

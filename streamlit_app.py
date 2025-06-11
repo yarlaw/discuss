@@ -21,16 +21,16 @@ def get_entity_response(entity, topic, entity_materials, previous_responses=None
     
     entity_model = get_entity_model(entity)
     
-    pdf_context = ""
+    context = ""
     if entity_uuid in entity_materials and entity_materials[entity_uuid]:
-        pdf_docs = entity_materials[entity_uuid].get_documents()
-        if pdf_docs:
-            pdf_context = "CONTEXT FROM YOUR DOCUMENTS:\n"
-            for doc in pdf_docs[:3]:  
-                pdf_context += f"--- From {doc['filename']} ---\n"
+        docs = entity_materials[entity_uuid].get_documents()
+        if docs:
+            context = "CONTEXT FROM YOUR DOCUMENTS:\n"
+            for doc in docs[:3]:  
+                context += f"--- From {doc['filename']} ---\n"
                 max_chars = 1500
                 text = doc['text'][:max_chars] + ("..." if len(doc['text']) > max_chars else "")
-                pdf_context += f"{text}\n\n"
+                context += f"{text}\n\n"
     
     current_cycle_context = ""
     if previous_responses and len(previous_responses) > 0:
@@ -81,7 +81,7 @@ Your response as {entity_name} for cycle {cycle_num}:"""
             "topic": topic,
             "previous_context": previous_context,
             "cycle_num": cycle_num,
-            "pdf_context": pdf_context
+            "pdf_context": context
         })
         return response.content
     except Exception as e:
