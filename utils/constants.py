@@ -1,5 +1,5 @@
 UPLOAD_FOLDER = "RAG_files"
-DEFAULT_CYCLES = 3
+DEFAULT_CYCLES = 1
 DEFAULT_MODEL_NAME = "mistral-7b"
 WELCOME_MESSAGE = """Welcome to the LLM Discussions Bot! 👋
 

@@ -20,11 +20,11 @@ def render_sidebar():
         key="discuss_circles",
         help="Number of discuss circles"
     )
-        
+
+
     st.header("Entities")
     for idx, entity in enumerate(st.session_state.entities):
         with st.expander(f"**{entity['title']}**", expanded=False):
-            # Show model information
             model_name = entity.get("model", "mistral-7b")
             model_family = get_model_family(model_name)
             st.caption(f"Model: {model_name} ({model_family})")

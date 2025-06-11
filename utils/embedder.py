@@ -13,6 +13,9 @@ class FAISSIndex:
         for idx in I[0]:
             results.append(self.metadata[idx])
         return results
+    
+    def get_documents(self):
+        return self.metadata
 
 embed_model_id = 'intfloat/e5-small-v2'
 model_kwargs = {"device": "cpu", "trust_remote_code": True}

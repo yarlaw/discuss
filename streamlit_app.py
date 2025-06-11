@@ -21,6 +21,17 @@ def get_entity_response(entity, topic, entity_materials, previous_responses=None
     
     entity_model = get_entity_model(entity)
     
+    pdf_context = ""
+    if entity_uuid in entity_materials and entity_materials[entity_uuid]:
+        pdf_docs = entity_materials[entity_uuid].get_documents()
+        if pdf_docs:
+            pdf_context = "CONTEXT FROM YOUR DOCUMENTS:\n"
+            for doc in pdf_docs[:3]:  
+                pdf_context += f"--- From {doc['filename']} ---\n"
+                max_chars = 1500
+                text = doc['text'][:max_chars] + ("..." if len(doc['text']) > max_chars else "")
+                pdf_context += f"{text}\n\n"
+    
     current_cycle_context = ""
     if previous_responses and len(previous_responses) > 0:
         current_cycle_context = f"Current responses in discussion cycle {cycle_num}:\n"
@@ -42,9 +53,10 @@ def get_entity_response(entity, topic, entity_materials, previous_responses=None
     if previous_cycles_context:
         previous_context += "\n" + previous_cycles_context
     
-    # Entity discussion prompt template
     entity_template = """You are {entity_name}.
 You are participating in cycle {cycle_num} of a discussion about the topic: "{topic}".
+
+{pdf_context}
 
 {previous_context}
 
@@ -56,6 +68,7 @@ IMPORTANT INSTRUCTIONS:
 2. Reference or challenge what other entities have said (either in this cycle or previous cycles)
 3. Evolve your position based on the ongoing discussion
 4. Be concise and provocative (2-3 sentences)
+5. If context from your documents was provided, use it to inform your perspective
 
 Your response as {entity_name} for cycle {cycle_num}:"""
     
@@ -67,7 +80,8 @@ Your response as {entity_name} for cycle {cycle_num}:"""
             "entity_name": entity_name,
             "topic": topic,
             "previous_context": previous_context,
-            "cycle_num": cycle_num
+            "cycle_num": cycle_num,
+            "pdf_context": pdf_context
         })
         return response.content
     except Exception as e:
@@ -75,13 +89,6 @@ Your response as {entity_name} for cycle {cycle_num}:"""
         return f"I'm sorry, as {entity_name}, I'm having trouble formulating a response right now."
 
 def conduct_discussion(topic, num_cycles):
-    """
-    Conduct a multi-cycle discussion on the given topic
-    
-    Args:
-        topic: The discussion topic
-        num_cycles: Number of discussion cycles to run
-    """
     response_container = st.container()
     status_placeholder = st.empty()
     
@@ -140,37 +147,30 @@ def conduct_discussion(topic, num_cycles):
             time.sleep(1)
 
 def render_main_interface():
-    """Render the main chat interface"""
     st.title("🗨️ LLM discussions bot")
     
-    # Check if materials are loaded
     if not st.session_state.materials_loaded:
         st.info("Please activate and load all materials before starting the discussion.")
         st.chat_input("Put the theme to discussion", key="text", disabled=True)
         return
     
-    # Display chat history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
     
-    # Chat input
     topic = st.chat_input("Put the theme to discussion", key="text")
+    
     if topic:
-        # Display user message
         st.session_state.messages.append({"role": "user", "content": topic})
         with st.chat_message("user"):
             st.markdown(topic)
         
-        # Start discussion
         st.session_state.current_topic = topic
         st.session_state.discussion_active = True
         
-        # Get number of cycles and run discussion
         num_cycles = st.session_state.discuss_circles
         conduct_discussion(topic, num_cycles)
         
-        # Mark discussion as complete
         st.session_state.discussion_active = False
 
 def main():
