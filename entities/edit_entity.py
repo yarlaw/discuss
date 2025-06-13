@@ -77,19 +77,9 @@ def edit_entity(id, old_title):
                     current_wiki = src["filepath"]
                     break
         
-        # Initialize a key in session state to track when to clear the link
-        clear_link_key = f"clear_link_{id}"
-        if clear_link_key not in st.session_state:
-            st.session_state[clear_link_key] = False
-            
-        # If clear link was pressed in a previous run, use empty string
-        if st.session_state[clear_link_key]:
-            current_wiki = ""
-            st.session_state[clear_link_key] = False  # Reset the flag
-        
         link = st.text_input("Insert link", value=current_wiki, key=f"edit_entity_link_{id}")
         
-        submit_wiki = st.button("SubmitReplace Wiki Link", key=f"submit_wiki_{id}", use_container_width=True)
+        submit_wiki = st.button("Submit|Replace Wiki Link", key=f"submit_wiki_{id}", use_container_width=True)
         if submit_wiki and link:
             if "wikipedia.org" in link:
                 st.success("✅ Wikipedia link submitted|replaced successfully!")
