@@ -6,6 +6,7 @@ from entities.edit_entity import edit_entity
 from utils.material_loader import load_all_entity_materials
 from utils.constants import DEFAULT_CYCLES
 from utils.models import get_model_family
+from utils.docloader import extract_persona_name_from_wiki_url
 
 @st.fragment
 def render_sidebar():
@@ -28,6 +29,23 @@ def render_sidebar():
             model_name = entity.get("model", "mistral-7b")
             model_family = get_model_family(model_name)
             st.caption(f"Model: {model_name} ({model_family})")
+            
+            # Display persona mode if enabled
+            if entity.get("persona_mode", False):
+                wiki_url = None
+                for src in entity.get("sources", []):
+                    if src["type"] == "wiki" and "wikipedia.org" in src["filepath"]:
+                        wiki_url = src["filepath"]
+                        break
+                
+                if wiki_url:
+                    persona_name = extract_persona_name_from_wiki_url(wiki_url)
+                    if persona_name:
+                        st.caption(f"🎭 Persona Mode: {persona_name}")
+                    else:
+                        st.caption("🎭 Persona Mode enabled")
+                else:
+                    st.caption("🎭 Persona Mode enabled (needs Wikipedia link)")
                 
             pdf_count = len([src for src in entity.get("sources", []) if src["type"] == "pdf"])
             wiki_count = len([src for src in entity.get("sources", []) if src["type"] == "wiki"])
@@ -75,7 +93,6 @@ def render_sidebar():
         
     st.header("Model activation status")
     if not st.session_state.materials_loaded:
-        st.progress(st.session_state.loading_progress, text="Loading entity materials...")
         if st.button("Activate & Load All Materials", type="primary", use_container_width=True):
             load_all_entity_materials()
     else:

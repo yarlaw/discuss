@@ -6,6 +6,8 @@ import streamlit as st
 import utils.docloader as docloader
 import utils.embedder as embedder
 
+
+
 def load_entity_materials(entity, entity_materials, processed_files):
     entity_uuid = entity["uuid"]
     docs_to_index = []
@@ -106,6 +108,11 @@ def load_wiki_source(src, entity_processed):
             parsed_url = urlparse(url)
             path_parts = parsed_url.path.strip('/').split('/')
             page_title = path_parts[-1] if path_parts else "Wiki_Page"
+            
+            if "wikipedia.org" in url:
+                persona_name = docloader.extract_persona_name_from_wiki_url(url)
+                if persona_name:
+                    page_title = f"{persona_name}"
             
             doc_info = {
                 "filename": f"Wiki_{page_title}",

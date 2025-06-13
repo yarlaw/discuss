@@ -3,6 +3,7 @@ import fitz
 import requests
 from bs4 import BeautifulSoup
 import streamlit as st
+from urllib.parse import urlparse, unquote
 
 def load_pdf(file_path):
     doc = fitz.open(file_path)
@@ -43,4 +44,30 @@ def load_wiki_content(url):
     
     except Exception as e:
         st.error(f"Error fetching wiki content: {str(e)}", icon="🚨")
+        return None
+
+def extract_persona_name_from_wiki_url(url):
+    try:
+        if not url or "wikipedia.org" not in url:
+            return None
+            
+        parsed_url = urlparse(url)
+        path_parts = parsed_url.path.strip('/').split('/')
+        
+        if not path_parts or "wiki" not in path_parts:
+            return None
+            
+        wiki_index = path_parts.index("wiki")
+        if wiki_index < len(path_parts) - 1:
+            title = path_parts[wiki_index + 1]
+            
+            title = unquote(title)
+            
+            title = title.replace('_', ' ')
+            
+            return title
+        
+        return None
+        
+    except Exception:
         return None

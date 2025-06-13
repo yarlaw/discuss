@@ -25,6 +25,21 @@ def edit_entity(id, old_title):
     )
     
     selected_model = selected_model_label.split(" (")[0]
+
+    def show_and_select_sources_to_remove(current_entity):
+        sources_to_remove = []
+        if current_entity and current_entity.get("sources"):
+            st.markdown("**Previously sources to keep:**")
+            for idx, src in enumerate(current_entity["sources"]):
+                label = src["filename"] if src["type"] == "pdf" else src["filepath"]
+                keep = st.checkbox(
+                    f"{src['type'].capitalize()}: {label}", key=f"keep_{id}_{idx}", value=True
+                )
+                if not keep:
+                    sources_to_remove.append(src)
+        return sources_to_remove
+    
+    sources_to_remove = show_and_select_sources_to_remove(current_entity)
     
     tab1, tab2 = st.tabs(["PDF files", "Wikipedia link"])
 
@@ -45,18 +60,8 @@ def edit_entity(id, old_title):
                 })
         return sources
 
-    def show_and_select_sources_to_remove(current_entity):
-        sources_to_remove = []
-        if current_entity and current_entity.get("sources"):
-            st.markdown("**Previously sources to keep:**")
-            for idx, src in enumerate(current_entity["sources"]):
-                label = src["filename"] if src["type"] == "pdf" else src["filepath"]
-                keep = st.checkbox(
-                    f"{src['type'].capitalize()}: {label}", key=f"keep_{id}_{idx}", value=True
-                )
-                if not keep:
-                    sources_to_remove.append(src)
-        return sources_to_remove
+    
+
 
     with tab1:
         entity_folder = os.path.join(UPLOAD_FOLDER, str(id))
@@ -72,9 +77,36 @@ def edit_entity(id, old_title):
                     current_wiki = src["filepath"]
                     break
         
-        link = st.text_input("Insert link", value=current_wiki, key="edit_entity_link")
-
-    sources_to_remove = show_and_select_sources_to_remove(current_entity)
+        # Initialize a key in session state to track when to clear the link
+        clear_link_key = f"clear_link_{id}"
+        if clear_link_key not in st.session_state:
+            st.session_state[clear_link_key] = False
+            
+        # If clear link was pressed in a previous run, use empty string
+        if st.session_state[clear_link_key]:
+            current_wiki = ""
+            st.session_state[clear_link_key] = False  # Reset the flag
+        
+        link = st.text_input("Insert link", value=current_wiki, key=f"edit_entity_link_{id}")
+        
+        submit_wiki = st.button("SubmitReplace Wiki Link", key=f"submit_wiki_{id}", use_container_width=True)
+        if submit_wiki and link:
+            if "wikipedia.org" in link:
+                st.success("✅ Wikipedia link submitted|replaced successfully!")
+            else:
+                st.warning("⚠️ Link doesn't appear to be a Wikipedia page.")
+        
+        persona_mode = st.checkbox("Persona Mode", 
+                                value=current_entity.get("persona_mode", False) if current_entity else False, 
+                                key=f"edit_entity_persona_mode_{id}", 
+                                help="When enabled, the entity will assume the persona of the person from the Wikipedia link")
+        
+        if persona_mode and link and "wikipedia.org" in link:
+            st.info("📌 Persona Mode enabled: This entity will speak as the person from the Wikipedia page")
+        elif persona_mode and link:
+            st.warning("⚠️ Link doesn't appear to be a Wikipedia page about a person. Persona mode may not work correctly.")
+        elif persona_mode and not link:
+            st.warning("⚠️ Please enter a Wikipedia link to use Persona Mode")
 
     if st.button("Submit", type="primary"):
         for item in st.session_state.entities:
@@ -91,6 +123,8 @@ def edit_entity(id, old_title):
                                 except Exception:
                                     pass
                 new_pdf_added = False
+                wiki_changed = False
+                
                 if new_sources:
                     if "sources" not in item:
                         item["sources"] = []
@@ -122,6 +156,13 @@ def edit_entity(id, old_title):
                             "was_loaded": False
                         })
                         wiki_changed = True
+                else:
+                    existing_wiki = next((s for s in item["sources"] if s["type"] == "wiki"), None)
+                    if existing_wiki:
+                        item["sources"].remove(existing_wiki)
+                        wiki_changed = True
+                
+                item["persona_mode"] = persona_mode
                 
                 if new_pdf_added or wiki_changed:
                     st.session_state.materials_loaded = False

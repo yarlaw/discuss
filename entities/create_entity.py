@@ -29,7 +29,35 @@ def create_entity(new_title):
         uploaded_files = st.file_uploader("Choose files", type=["txt", "pdf"], accept_multiple_files=True, key="create_entity_file_uploader")
 
     with tab2:
-        link = st.text_input("Insert link", value="", key="create_entity_link_input")
+        # Initialize a key in session state to track when to clear the link
+        if "clear_create_link" not in st.session_state:
+            st.session_state["clear_create_link"] = False
+            
+        # If clear link was pressed in a previous run, use empty string as initial value
+        initial_value = "" if st.session_state["clear_create_link"] else ""
+        if st.session_state["clear_create_link"]:
+            st.session_state["clear_create_link"] = False  # Reset the flag
+        
+        link = st.text_input("Insert link", value=initial_value, key="create_entity_link_input")
+        
+        submit_wiki = st.button("Submit Wiki Link", key="submit_wiki_create", use_container_width=True)
+        if submit_wiki and link:
+            if "wikipedia.org" in link:
+                st.success("✅ Wikipedia link submitted successfully!")
+            else:
+                st.warning("⚠️ Link doesn't appear to be a Wikipedia page.")
+        
+        persona_mode = st.checkbox("Persona Mode", 
+                                   value=False, 
+                                   key="create_entity_persona_mode", 
+                                   help="When enabled, the entity will assume the persona of the person from the Wikipedia link")
+        
+        if persona_mode and link and "wikipedia.org" in link:
+            st.info("📌 Persona Mode enabled: This entity will speak as the person from the Wikipedia page")
+        elif persona_mode and link:
+            st.warning("⚠️ Link doesn't appear to be a Wikipedia page about a person. Persona mode may not work correctly.")
+        elif persona_mode and not link:
+            st.warning("⚠️ Please enter a Wikipedia link to use Persona Mode")
 
     if st.button("Submit", type="primary"):
         entity_uuid = str(uuid.uuid1())
@@ -56,7 +84,8 @@ def create_entity(new_title):
         st.session_state.entities.append({
             "uuid": entity_uuid,
             "title": title,
-            "model": selected_model, 
+            "model": selected_model,
+            "persona_mode": persona_mode,
             "sources": sources
         })
         
