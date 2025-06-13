@@ -5,7 +5,6 @@ import streamlit as st
 
 import utils.docloader as docloader
 import utils.embedder as embedder
-from utils.constants import UPLOAD_FOLDER
 
 def load_entity_materials(entity, entity_materials, processed_files):
     entity_uuid = entity["uuid"]
@@ -23,9 +22,13 @@ def load_entity_materials(entity, entity_materials, processed_files):
                 docs_to_index.append(doc_info)
                 entity_processed[src["filename"]] = processed_entry
                 
-        elif src["type"] == "wiki_link":
+        elif src["type"] == "wiki":
             doc_info, was_loaded, processed_entry = load_wiki_source(src, entity_processed)
             src["was_loaded"] = was_loaded
+            
+            if doc_info and was_loaded and processed_entry:
+                docs_to_index.append(doc_info)
+                entity_processed[src["filepath"]] = processed_entry
             
     
     processed_files[entity_uuid] = entity_processed

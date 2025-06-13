@@ -22,8 +22,8 @@ def load_documents_from_folder(folder_path):
 
 def load_wiki_content(url):
     try:
-        response = requests.get(url, headers={'User-Agent': 'StreamChat Wiki Fetcher/1.0'})
-        response.raise_for_status()  # Raise exception for HTTP errors
+        response = requests.get(url, headers={'User-Agent': 'DiscussionBot Wiki Fetcher/1.0'})
+        response.raise_for_status()
         
         soup = BeautifulSoup(response.text, 'html.parser')
         

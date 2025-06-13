@@ -52,7 +52,7 @@ def edit_entity(id, old_title):
             for idx, src in enumerate(current_entity["sources"]):
                 label = src["filename"] if src["type"] == "pdf" else src["filepath"]
                 keep = st.checkbox(
-                    f"{src['type'].upper()}: {label}", key=f"keep_{id}_{idx}", value=True
+                    f"{src['type'].capitalize()}: {label}", key=f"keep_{id}_{idx}", value=True
                 )
                 if not keep:
                     sources_to_remove.append(src)
@@ -63,17 +63,18 @@ def edit_entity(id, old_title):
         os.makedirs(entity_folder, exist_ok=True)
         new_sources = handle_file_uploads(entity_folder)
         current_entity = next((item for item in st.session_state.entities if item["uuid"] == id), None)
-        sources_to_remove = show_and_select_sources_to_remove(current_entity)
 
     with tab2:
-        current_wiki_link = ""
+        current_wiki = ""
         if current_entity and current_entity.get("sources"):
             for src in current_entity["sources"]:
-                if src["type"] == "wiki_link":
-                    current_wiki_link = src["filepath"]
+                if src["type"] == "wiki":
+                    current_wiki = src["filepath"]
                     break
         
-        link = st.text_input("Insert link", value=current_wiki_link, key="edit_entity_link")
+        link = st.text_input("Insert link", value=current_wiki, key="edit_entity_link")
+
+    sources_to_remove = show_and_select_sources_to_remove(current_entity)
 
     if st.button("Submit", type="primary"):
         for item in st.session_state.entities:
@@ -107,22 +108,22 @@ def edit_entity(id, old_title):
                     if "sources" not in item:
                         item["sources"] = []
                     
-                    existing_wiki = next((s for s in item["sources"] if s["type"] == "wiki_link"), None)
+                    existing_wiki = next((s for s in item["sources"] if s["type"] == "wiki"), None)
                     
                     if existing_wiki:
                         if existing_wiki["filepath"] != link:
                             existing_wiki["filepath"] = link
                             existing_wiki["was_loaded"] = False
-                            wiki_link_changed = True
+                            wiki_changed = True
                     else:
                         item["sources"].append({
-                            "type": "wiki_link", 
+                            "type": "wiki", 
                             "filepath": link,
                             "was_loaded": False
                         })
-                        wiki_link_changed = True
+                        wiki_changed = True
                 
-                if new_pdf_added or wiki_link_changed:
+                if new_pdf_added or wiki_changed:
                     st.session_state.materials_loaded = False
                     st.session_state._entities_changed = True
                 

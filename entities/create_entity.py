@@ -49,7 +49,7 @@ def create_entity(new_title):
                     f.write(uploaded_file.getbuffer())
         if link:
             sources.append({
-                "type": "wiki_link", 
+                "type": "wiki", 
                 "filepath": link,
                 "was_loaded": False
             })

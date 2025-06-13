@@ -30,13 +30,18 @@ def render_sidebar():
             st.caption(f"Model: {model_name} ({model_family})")
                 
             pdf_count = len([src for src in entity.get("sources", []) if src["type"] == "pdf"])
-            wiki_count = len([src for src in entity.get("sources", []) if src["type"] == "wiki_link"])
-                
+            wiki_count = len([src for src in entity.get("sources", []) if src["type"] == "wiki"])
+            
+            # Display badges in a single line using markdown
+            badges = []
             if pdf_count > 0:
-                st.badge(f"PDFs: {pdf_count}", color="violet", icon="📄")
+                badges.append(f":violet-badge[📄 PDFs: {pdf_count}]")
             if wiki_count > 0:
-                st.badge(f"Wiki: {wiki_count}", color="blue", icon="🌐")
-            if not entity.get("sources") or len(entity.get("sources", [])) == 0:
+                badges.append(f":blue-badge[🌐 Wiki: {wiki_count}]")
+            
+            if badges:
+                st.markdown(" ".join(badges))
+            elif not entity.get("sources") or len(entity.get("sources", [])) == 0:
                 st.markdown(":orange-badge[⚠️No sources attached]")
                 
             col1, col2 = st.columns(2)
@@ -83,7 +88,10 @@ def render_sidebar():
         
     st.markdown(f"**PDFs loaded:** {loaded_pdfs} / {total_pdfs}")
 
-    total_links = sum(len([src for src in entity.get("sources", []) if src["type"] == "wiki_link"]) 
+    total_links = sum(len([src for src in entity.get("sources", []) if src["type"] == "wiki"]) 
     for entity in st.session_state.entities)
 
-    st.markdown(f"**Wiki links:** {total_links}")
+    loaded_links = sum(len([src for src in entity.get("sources", []) if (src["type"] == "wiki") and src.get("was_loaded")]) 
+        for entity in st.session_state.entities)
+
+    st.markdown(f"**Wiki links:** {loaded_links} / {total_links}")
