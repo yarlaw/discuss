@@ -243,15 +243,16 @@ def conduct_discussion(topic, num_cycles):
 
 def render_main_interface():
     st.title("🗨️ LLM discussions bot")
-    
-    if not st.session_state.materials_loaded:
-        st.info("Please activate and load all materials before starting the discussion.")
-        st.chat_input("Put the theme to discussion", key="text", disabled=True)
-        return
-    
+
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+    
+    if not st.session_state.materials_loaded:
+        st.info("Please activate and load all materials before starting the discussion.")
+        st.chat_input("Firstly activate all materials", key="text", disabled=True)
+        return
+    
     
     topic = st.chat_input("Put the theme to discussion", key="text")
     
