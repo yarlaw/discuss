@@ -1,6 +1,6 @@
-# stream-chat
+# discuss
 
-**stream-chat** is an interactive discussion application powered by Large Language Models (LLMs). It enables you to simulate multi-entity debates on any topic, where each entity can represent a unique persona, expert, or fictional character. Entities draw their knowledge from uploaded PDF documents or Wikipedia articles, and participate in turn-based discussions, responding to each other's arguments in lively, multi-cycle debates.
+dicuss is an interactive discussion application powered by Large Language Models (LLMs). It enables you to simulate multi-entity debates on any topic, where each entity can represent a unique persona, expert, or fictional character. Entities draw their knowledge from uploaded PDF documents or Wikipedia articles, and participate in turn-based discussions, responding to each other's arguments in lively, multi-cycle debates.
 
 ![image](https://github.com/user-attachments/assets/5f9da4b5-26e6-4ea4-ab20-f884eec13651)
 
@@ -24,35 +24,37 @@
 ### Installation
 
 1. **Clone the repository:**
-    ```bash
-    git clone https://github.com/yarlaw/stream-chat.git
-    cd stream-chat
-    ```
 
+   ```bash
+   git clone https://github.com/yarlaw/discuss
+   cd discuss
+   ```
 2. **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    pip install streamlit
-    ```
 
+   ```bash
+   pip install -r requirements.txt
+   pip install streamlit
+   ```
 3. **Run the application:**
-    ```bash
-    streamlit run streamlit_app.py
-    ```
+
+   ```bash
+   streamlit run streamlit_app.py
+   ```
 
    The app will be available at `http://localhost:8501`.
 
 ### Docker
 
 1. **Build the container:**
-    ```bash
-    docker build -t stream-chat .
-    ```
 
+   ```bash
+   docker build -t stream-chat .
+   ```
 2. **Run the container:**
-    ```bash
-    docker run -p 8501:8501 stream-chat
-    ```
+
+   ```bash
+   docker run -p 8501:8501 stream-chat
+   ```
 
 ## Usage
 
