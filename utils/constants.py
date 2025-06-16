@@ -7,3 +7,5 @@ Enter a topic below, and the configured entities will discuss it in multiple cyc
 Each entity will see and respond to what others have said, including previous discussion cycles. 
 Use the 'Discuss circles' slider in the sidebar to control how many rounds of discussion to have. 
 Entities are encouraged to be controversial and take strong stances on topics, so expect lively debates!"""
+
+WIKI_LINK = "wikipedia.org"

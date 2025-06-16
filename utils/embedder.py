@@ -8,7 +8,7 @@ class FAISSIndex:
         self.metadata = metadata
 
     def similarity_search(self, query, k=3):
-        D, I = self.index.search(query, k)
+        _, I = self.index.search(query, k)
         results = []
         for idx in I[0]:
             results.append(self.metadata[idx])

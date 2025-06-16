@@ -7,7 +7,7 @@ from chat_openrouter import ChatOpenRouter
 
 from utils.setup import initialize_session_state
 from sidebar import render_sidebar
-from utils.constants import DEFAULT_MODEL_NAME
+from utils.constants import DEFAULT_MODEL_NAME, WIKI_LINK
 from utils.models import get_model_id
 from utils.docloader import extract_persona_name_from_wiki_url
 
@@ -34,7 +34,7 @@ def get_entity_response(entity, topic, entity_materials, previous_responses=None
             if persona_mode:
                 wiki_url = None
                 for src in entity.get("sources", []):
-                    if src["type"] == "wiki" and "wikipedia.org" in src["filepath"]:
+                    if src["type"] == "wiki" and WIKI_LINK in src["filepath"]:
                         wiki_url = src["filepath"]
                         break
                 
@@ -96,7 +96,7 @@ def get_entity_response(entity, topic, entity_materials, previous_responses=None
     if persona_mode:
         wiki_url = None
         for src in entity.get("sources", []):
-            if src["type"] == "wiki" and "wikipedia.org" in src["filepath"]:
+            if src["type"] == "wiki" and WIKI_LINK in src["filepath"]:
                 wiki_url = src["filepath"]
                 break
         
@@ -203,13 +203,13 @@ def conduct_discussion(topic, num_cycles):
                 }
                 entity_responses.append(current_response)
                 
-                with response_container.chat_message("assistant", avatar=f"🤖"):
+                with response_container.chat_message("assistant", avatar="🤖"):
                     if entity.get("persona_mode", False):
                         wiki_url = None
                         persona_name = None
                         
                         for src in entity.get("sources", []):
-                            if src["type"] == "wiki" and "wikipedia.org" in src["filepath"]:
+                            if src["type"] == "wiki" and WIKI_LINK in src["filepath"]:
                                 wiki_url = src["filepath"]
                                 break
                         
